@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/tveh/Downloads/SQL Project For Stride/sql-for-stride-frum.sql" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6301"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,18:maincountry_population"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="1. Data Clean and Table Creation.sql">/* In this project I'm going to process
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/tveh/Documents/GitHub/frum-sql-portfolio/SQLite-Project-1/database.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6301"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,18:maincountry_population"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="1. Data Clean and Table Creation.sql">/* In this project I'm going to process
    and reorganize three tables of demographic data
    sourced from Kaggle. The code is SQLite and the project
    is being done in DB Browser.
@@ -142,6 +142,28 @@ FROM merged_data;
    
 -- How much has the United States changed in 56 years?
 
-select *
+EXPLAIN QUERY PLAN SELECT pop1960, pop2016
 FROM merged_data
-</sql><current_tab id="1"/></tab_sql></sqlb_project>
+WHERE CountryCode = &quot;USA&quot;;
+
+-- Sadly our index didn't save us any time.
+
+-- How many people have we added as a species?
+
+SELECT SUM(pop1960)
+FROM merged_data;
+
+-- That's hard to read.
+
+SELECT printf('%,d', SUM(pop1960))
+as total_sum
+FROM merged_data;
+
+-- 30 Billion People in 1960 doesn't sound right. Let's look closer.
+
+SELECT CountryCode, CountryName, pop1960
+FROM merged_data
+WHERE pop1960 &gt; 1.0E9;
+
+/* And so we've discovered that our dataset has some issues. Despite it being labeled as countries it
+   it also includes non-country categories. We have two ways of handling this*/</sql><current_tab id="1"/></tab_sql></sqlb_project>
