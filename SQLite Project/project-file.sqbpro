@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/tveh/Downloads/SQL Project For Stride/sql-for-stride-frum.sql" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6301"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,18:maincountry_population"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="1. Data Clean and Table Creation.sql">/* In this project I'm going to process
+   and reorganize three tables of demographic data
+   sourced from Kaggle. The code is SQLite and the project
+   is being done in DB Browser.
+   
+   I've included the unmodified CSV files.*/
+
+/* We'll need to combine them all according to a common key.
+   But first I need to inspect and reorganize my data.
+   about what data I'll I use from this database.*/
+   
+SELECT *
+FROM country_population, fertility_rate, life_expectancy;
+
+/* We have a problem before we combine these tables. 
+   They share a *lot* of keys since the data is organized by year.
+   
+   Another issue is that some of those decimal places are extremely long.
+   I should truncate those, but I'll do that later.*/
+
+/* We'll do some cleaning. We don't need these indicator columns since 
+   we can know that in other ways. Unfortunately SQLite isn't concise here.*/
+
+ALTER TABLE country_population
+DROP COLUMN IndicatorName;
+
+ALTER TABLE country_population
+DROP COLUMN IndicatorCode;
+
+ALTER TABLE fertility_rate
+DROP COLUMN IndicatorName;
+
+ALTER TABLE fertility_rate
+DROP COLUMN IndicatorCode;
+
+ALTER TABLE life_expectancy
+DROP COLUMN IndicatorName;
+
+ALTER TABLE life_expectancy
+DROP COLUMN IndicatorCode;
+
+/* At this point I would normally turn to a python script to automate this.
+   Instead let's just limit the scope a bit to a couple of years. Our first and last.*/
+   
+ALTER TABLE country_population
+RENAME COLUMN &quot;2016&quot; TO pop2016;
+
+ALTER TABLE country_population
+RENAME COLUMN &quot;1960&quot; TO pop1960;
+
+ALTER TABLE fertility_rate
+RENAME COLUMN &quot;2016&quot; TO fert2016;
+
+ALTER TABLE fertility_rate
+RENAME COLUMN &quot;1960&quot; TO fert1960;
+
+ALTER TABLE life_expectancy
+RENAME COLUMN &quot;2016&quot; TO life2016;
+
+ALTER TABLE life_expectancy
+RENAME COLUMN &quot;1960&quot; TO life1960;
+
+-- Now let's merge these tables together.
+
+/* If I weren't using SQLite I would do this differently. This is another opportunity to use Python
+   to automate the query for a larger database. */
+
+-- I want to make a table to merge the data into. 
+CREATE TABLE merged_data (
+  CountryName TEXT,
+  CountryCode TEXT,
+  pop1960 REAL,
+  pop2016 REAL,
+  fert1960 REAL,
+  fert2016 REAL,
+  life1960 REAL,
+  life2016 REAL
+);
+
+-- Now let's fill this table with data.
+
+INSERT INTO merged_data
+SELECT  c.CountryName, c.CountryCode,
+        p.pop1960, p.pop2016,
+        f.fert1960, f.fert2016,
+        l.life1960, l.life2016
+FROM country_population p
+INNER JOIN fertility_rate f ON p.CountryCode = f.CountryCode AND p.CountryName = f.CountryName
+INNER JOIN life_expectancy l ON p.CountryCode = l.CountryCode AND p.CountryName = l.CountryName
+INNER JOIN (
+  SELECT DISTINCT CountryCode, CountryName
+  FROM country_population
+) c ON p.CountryCode = c.CountryCode AND p.CountryName = c.CountryName;
+
+-- So did that work?
+
+
+-- It did! But now I want to do something about these decimal points.
+
+/* I could manually do this, or generate a large query, or use python.
+   However I want to move a little out of my comfort zone here. */
+   
+SELECT group_concat('UPDATE merged_data SET &quot;' || name || '&quot; = ROUND(&quot;' || name || '&quot;, 3); ', '') 
+FROM pragma_table_info('merged_data');
+
+/* This is another place where SQLite has some limitations. AFAIK you can't assign the statement that 
+   was just generated to a variable to execute automatically here. */
+   
+/* The resulting code from that statement:   
+   UPDATE merged_data SET &quot;CountryName&quot; = ROUND(&quot;CountryName&quot;, 3);
+   UPDATE merged_data SET &quot;CountryCode&quot; = ROUND(&quot;CountryCode&quot;, 3);
+   UPDATE merged_data SET &quot;pop1960&quot; = ROUND(&quot;pop1960&quot;, 3);
+   UPDATE merged_data SET &quot;pop2016&quot; = ROUND(&quot;pop2016&quot;, 3);
+   UPDATE merged_data SET &quot;fert1960&quot; = ROUND(&quot;fert1960&quot;, 3);
+   UPDATE merged_data SET &quot;fert2016&quot; = ROUND(&quot;fert2016&quot;, 3);
+   UPDATE merged_data SET &quot;life1960&quot; = ROUND(&quot;life1960&quot;, 3);
+   UPDATE merged_data SET &quot;life2016&quot; = ROUND(&quot;life2016&quot;, 3); 
+   
+   So why did I comment that? Well, it'll ruin our table, that's why! I can't round a string!
+   This is another limitation of SQLite.*/
+
+SELECT group_concat('UPDATE merged_data SET &quot;' || name || '&quot; = ROUND(&quot;' || name || '&quot;, 3); ', '') 
+FROM pragma_table_info('merged_data')
+WHERE type &lt;&gt; 'TEXT';
+
+-- That's better. We get this as our concatenated statement:
+UPDATE merged_data SET &quot;pop1960&quot; = ROUND(&quot;pop1960&quot;, 3); 
+UPDATE merged_data SET &quot;pop2016&quot; = ROUND(&quot;pop2016&quot;, 3); 
+UPDATE merged_data SET &quot;fert1960&quot; = ROUND(&quot;fert1960&quot;, 3); 
+UPDATE merged_data SET &quot;fert2016&quot; = ROUND(&quot;fert2016&quot;, 3); 
+UPDATE merged_data SET &quot;life1960&quot; = ROUND(&quot;life1960&quot;, 3); 
+UPDATE merged_data SET &quot;life2016&quot; = ROUND(&quot;life2016&quot;, 3); 
+   
+SELECT *
+FROM merged_data;
+
+-- That worked perfectly!
+
+
+</sql><sql name="2. Exploring Data.sql">/* While our new table, merged_data, isn't large that doesn't mean
+   it can't be used to do interesting things. Let's ask some questions.*/
+   
+-- How much has the United States changed in 56 years?
+
+select *
+FROM merged_data
+</sql><current_tab id="1"/></tab_sql></sqlb_project>
