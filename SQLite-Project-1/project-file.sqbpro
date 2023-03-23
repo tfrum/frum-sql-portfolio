@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/tveh/Documents/GitHub/frum-sql-portfolio/SQLite-Project-1/database.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6301"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,18:maincountry_population"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="1. Data Clean and Table Creation.sql">/* In this project I'm going to process
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/home/tveh/Documents/GitHub/frum-sql-portfolio/SQLite-Project-1/database.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="4955"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,17:maincountry_iso_codes"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="country_iso_codes" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="113"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="country_population" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="300"/><column index="2" value="113"/><column index="3" value="96"/><column index="4" value="96"/><column index="5" value="96"/><column index="6" value="96"/><column index="7" value="96"/><column index="8" value="96"/><column index="9" value="96"/><column index="10" value="96"/><column index="11" value="96"/><column index="12" value="96"/><column index="13" value="96"/><column index="14" value="96"/><column index="15" value="96"/><column index="16" value="96"/><column index="17" value="96"/><column index="18" value="96"/><column index="19" value="96"/><column index="20" value="96"/><column index="21" value="96"/><column index="22" value="96"/><column index="23" value="96"/><column index="24" value="96"/><column index="25" value="96"/><column index="26" value="96"/><column index="27" value="96"/><column index="28" value="96"/><column index="29" value="96"/><column index="30" value="96"/><column index="31" value="96"/><column index="32" value="96"/><column index="33" value="96"/><column index="34" value="96"/><column index="35" value="96"/><column index="36" value="96"/><column index="37" value="96"/><column index="38" value="96"/><column index="39" value="96"/><column index="40" value="96"/><column index="41" value="96"/><column index="42" value="96"/><column index="43" value="96"/><column index="44" value="96"/><column index="45" value="96"/><column index="46" value="96"/><column index="47" value="96"/><column index="48" value="96"/><column index="49" value="96"/><column index="50" value="96"/><column index="51" value="96"/><column index="52" value="96"/><column index="53" value="96"/><column index="54" value="96"/><column index="55" value="96"/><column index="56" value="96"/><column index="57" value="109"/><column index="58" value="96"/><column index="59" value="96"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="1. Data Clean and Table Creation.sql">/* In this project I'm going to process
    and reorganize three tables of demographic data
    sourced from Kaggle. The code is SQLite and the project
    is being done in DB Browser.
@@ -8,7 +8,14 @@
 /* We'll need to combine them all according to a common key.
    But first I need to inspect and reorganize my data.
    about what data I'll I use from this database.*/
+
+/* If I were using sqlite3 in python I would import THEN
+   .csv files to tables here using code like:
    
+      sqlite&gt; .import 'raw_data/country_population.csv' country_population --csv
+	  
+   But for now just load raw.db if you want to get the tables.*/
+
 SELECT *
 FROM country_population, fertility_rate, life_expectancy;
 
@@ -166,4 +173,17 @@ FROM merged_data
 WHERE pop1960 &gt; 1.0E9;
 
 /* And so we've discovered that our dataset has some issues. Despite it being labeled as countries it
-   it also includes non-country categories. We have two ways of handling this*/</sql><current_tab id="1"/></tab_sql></sqlb_project>
+   it also includes non-country categories. We have two ways of handling this.
+   First, I can fetch the ISO 3166-1 alpha-3 list of country codes and then just compare those.*/
+   
+DELETE FROM merged_data
+WHERE CountryCode NOT IN (
+	SELECT CountryCode FROM country_iso_codes
+);
+
+-- Now let's see what we've got.
+
+SELECT printf('%,d', SUM(pop1960))
+as total_sum
+FROM merged_data;
+</sql><current_tab id="1"/></tab_sql></sqlb_project>

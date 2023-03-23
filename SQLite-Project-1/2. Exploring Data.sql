@@ -27,4 +27,16 @@ FROM merged_data
 WHERE pop1960 > 1.0E9;
 
 /* And so we've discovered that our dataset has some issues. Despite it being labeled as countries it
-   it also includes non-country categories. We have two ways of handling this*/
+   it also includes non-country categories. We have two ways of handling this.
+   First, I can fetch the ISO 3166-1 alpha-3 list of country codes and then just compare those.*/
+   
+DELETE FROM merged_data
+WHERE CountryCode NOT IN (
+	SELECT CountryCode FROM country_iso_codes
+);
+
+-- Now let's see what we've got.
+
+SELECT printf('%,d', SUM(pop1960))
+as total_sum
+FROM merged_data;

@@ -8,7 +8,14 @@
 /* We'll need to combine them all according to a common key.
    But first I need to inspect and reorganize my data.
    about what data I'll I use from this database.*/
+
+/* If I were using sqlite3 in python I would import THEN
+   .csv files to tables here using code like:
    
+      sqlite> .import 'raw_data/country_population.csv' country_population --csv
+	  
+   But for now just load raw.db if you want to get the tables.*/
+
 SELECT *
 FROM country_population, fertility_rate, life_expectancy;
 
