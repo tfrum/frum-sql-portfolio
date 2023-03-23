@@ -9,12 +9,12 @@
    But first I need to inspect and reorganize my data.
    about what data I'll I use from this database.*/
 
-/* If I were using sqlite3 in python I would import THEN
-   .csv files to tables here using code like:
+/* If I were using sqlite3 in a shell I would import my .csv files
+   to tables here using code like:
    
       sqlite> .import 'raw_data/country_population.csv' country_population --csv
 	  
-   But for now just load raw.db if you want to get the tables.*/
+   But for now just load raw_database.db if you want to get the tables.*/
 
 SELECT *
 FROM country_population, fertility_rate, life_expectancy;
