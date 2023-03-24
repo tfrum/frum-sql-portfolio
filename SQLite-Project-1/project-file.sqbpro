@@ -271,6 +271,14 @@ SELECT * FROM merged_data_new;
 PRAGMA table_info(merged_data_new);
 
 -- We do!
+DROP TABLE merged_data;
+ALTER TABLE merged_data_new RENAME TO merged_data;
+
+/* Now, it might have been good to do something like make 
+   CountryCode and CountryName a composite key. However, country codes are 
+   by-definition unique and we don't get a lot of new countries!*/
+   
+
 
 
 

@@ -37,13 +37,26 @@ CREATE TABLE merged_data_new (
 
 -- Now I can fill the new table with data.
 
-INTERT INTO merged_data_new
-	SELECT *
+INSERT INTO merged_data_new
+SELECT *
+FROM merged_data;
+
+SELECT * FROM merged_data_new;
+
+-- And we have a primary key now, right?
+PRAGMA table_info(merged_data_new);
+
+-- We do!
+DROP TABLE merged_data;
+ALTER TABLE merged_data_new RENAME TO merged_data;
+
+/* Now, it might have been good to do something like make 
+   CountryCode and CountryName a composite key. However, country codes are 
+   by-definition unique and we don't get a lot of new countries!*/
+   
 
 
 
--- FROM pragma_table_info('merged_data')
--- WHERE type <> 'TEXT';
 
 
 
