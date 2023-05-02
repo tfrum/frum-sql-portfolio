@@ -1,0 +1,14 @@
+/* Hi and thanks for checking out my projects.
+   This project is just meant to show the basics of SQL in a portable form.
+   That's why it's in SQLite!
+   
+   I'll demonstrate:
+      * CRUD
+	  * Advanced SQL Tricks
+	  * Key Creation
+	  * Some Normalization
+	  * Exploration of data
+	  * Data Cleaning
+	  
+   As well as some other things. Come along for the ride */
+   
