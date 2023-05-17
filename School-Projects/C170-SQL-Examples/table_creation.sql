@@ -110,4 +110,14 @@ ON COFFEE(coffee_name);
 	Now here is a select statement, I guess.
 */
 
-
+SELECT 
+	EIV.employee_id,
+	EIV.employee_full_name,
+	EIV.hire_date,
+	EIV.job_title,
+	CS.shop_name
+FROM EMPLOYEE_INFO_VIEW EIV
+INNER JOIN EMPLOYEE E
+ON  EIV.employee_id = E.employee_id
+INNER JOIN COFFEE_SHOP CS
+ON E.shop_id = CS.shop_id;
