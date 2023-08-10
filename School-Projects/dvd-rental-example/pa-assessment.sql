@@ -1,8 +1,6 @@
 DROP TABLE IF EXISTS detailed_table;
 DROP TABLE IF EXISTS summary_table;
 
-
-
 CREATE TABLE detailed_table (
     rental_id INT,
     rental_date TIMESTAMP,
@@ -14,8 +12,6 @@ CREATE TABLE detailed_table (
     replacement_cost NUMERIC
 );
 
-
-
 CREATE TABLE summary_table (
     month DATE,
     total_revenue NUMERIC,
@@ -23,8 +19,16 @@ CREATE TABLE summary_table (
     average_monthly_sales NUMERIC
 );
 
-
-
+CREATE OR REPLACE FUNCTION custom_transform_rental_duration(input_duration INT) RETURNS INT AS
+$$
+BEGIN
+    IF input_duration = -1 THEN
+        RETURN NULL;
+    ELSE
+        RETURN input_duration;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION update_summary_table() RETURNS TRIGGER AS
 $$
@@ -40,7 +44,7 @@ BEGIN
     FROM (
         SELECT
             DATE_TRUNC('month', rental_date) AS month,
-            rental_duration * rental_rate AS total_revenue
+            custom_transform_rental_duration(rental_duration) * rental_rate AS total_revenue
         FROM
             detailed_table
     ) sub
@@ -51,22 +55,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
-
 CREATE TRIGGER trigger_update_summary_table
 AFTER INSERT OR DELETE OR UPDATE ON detailed_table
 FOR EACH STATEMENT
 EXECUTE FUNCTION update_summary_table();
-
-
-
-
-
-
-
 
 CREATE OR REPLACE PROCEDURE refresh_report_data() AS
 $$
@@ -79,7 +71,7 @@ BEGIN
         r.return_date,
         r.customer_id,
         i.inventory_id,
-        EXTRACT(DAY FROM (r.return_date - r.rental_date)) AS rental_duration,
+        custom_transform_rental_duration(EXTRACT(DAY FROM (r.return_date - r.rental_date))) AS rental_duration,
         f.rental_rate,
         f.replacement_cost
     FROM
@@ -93,7 +85,7 @@ BEGIN
     WITH monthly_revenue AS (
         SELECT
             DATE_TRUNC('month', rental_date) AS month,
-            rental_duration * rental_rate AS revenue
+            custom_transform_rental_duration(rental_duration) * rental_rate AS revenue
         FROM
             detailed_table
     )
@@ -109,4 +101,3 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
-
